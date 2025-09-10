@@ -1,0 +1,14 @@
+groq
+langchain
+streamlit
+python-dotenv
+pyPDF2
+langchain_google_genai
+pymupdf
+
+unstructured
+pytesseract
+docx2txt
+tesseract
+tf-keras
+ 
