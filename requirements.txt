@@ -11,4 +11,13 @@ pytesseract
 docx2txt
 tesseract
 tf-keras
+
+flask
+gunicorn
+langchain-community
+langchain-groq
+sentence-transformers
+faiss-cpu
+python-docx
+pdf2image
  

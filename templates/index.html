@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+	<title>DocGuard AI</title>
+	<style>
+		body {
+			font-family: Arial, sans-serif;
+			background: linear-gradient(to bottom right, #f9fafb, #e5e7eb);
+			margin: 0;
+			padding: 20px;
+		}
+		.container {
+			max-width: 900px;
+			margin: auto;
+		}
+		h1 {
+			text-align: center;
+			font-size: 2rem;
+			color: #2563eb;
+		}
+		.card {
+			background: #fff;
+			border-radius: 12px;
+			box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+			margin-bottom: 20px;
+			padding: 20px;
+		}
+		.upload-section input[type="file"] {
+			margin-top: 10px;
+		}
+		.btn {
+			background: #2563eb;
+			color: white;
+			border: none;
+			padding: 10px 20px;
+			margin-top: 10px;
+			border-radius: 6px;
+			cursor: pointer;
+		}
+		.btn:disabled {
+			background: #9ca3af;
+			cursor: not-allowed;
+		}
+		.status {
+			margin-top: 10px;
+			padding: 8px;
+			border-radius: 6px;
+			font-size: 0.9rem;
+		}
+		.status.success {
+			background: #dcfce7;
+			color: #166534;
+		}
+		.status.error {
+			background: #fee2e2;
+			color: #991b1b;
+		}
+		.chat-box {
+			height: 300px;
+			overflow-y: auto;
+			border: 1px solid #ddd;
+			padding: 10px;
+			border-radius: 8px;
+			margin-bottom: 10px;
+			background: #f9fafb;
+		}
+		.message {
+			margin: 8px 0;
+			padding: 10px;
+			border-radius: 8px;
+			max-width: 70%;
+		}
+		.message.user {
+			background: #2563eb;
+			color: white;
+			margin-left: auto;
+		}
+		.message.ai {
+			background: #e5e7eb;
+			color: #111827;
+			margin-right: auto;
+		}
+		.input-group {
+			display: flex;
+			gap: 10px;
+		}
+		.input-group input {
+			flex: 1;
+			padding: 10px;
+			border-radius: 6px;
+			border: 1px solid #ddd;
+		}
+			.message.ai h1, 
+.message.ai h2, 
+.message.ai h3 {
+	margin: 6px 0;
+	font-weight: bold;
+}
+
+.message.ai ul, 
+.message.ai ol {
+	padding-left: 20px;
+	margin: 6px 0;
+}
+
+.message.ai code {
+	background: #f3f4f6;
+	padding: 2px 6px;
+	border-radius: 4px;
+	font-family: monospace;
+}
+
+.message.ai pre {
+	background: #1e293b;
+	color: #f8fafc;
+	padding: 10px;
+	border-radius: 8px;
+	overflow-x: auto;
+}
+	</style>
+</head>
+<body>
+	<div class="container">
+		<h1>DocGuard AI</h1>
+
+		<!-- Upload Section -->
+		<div class="card upload-section">
+			<h3>Upload Document</h3>
+			<input type="file" id="fileInput">
+			<button class="btn" id="uploadBtn" disabled>Upload</button>
+			<div id="uploadStatus"></div>
+		</div>
+
+		<!-- Chat Section -->
+		<div class="card" id="chatSection" style="display:none;">
+			<h3>Chat with Document</h3>
+			<div class="chat-box" id="chatBox">
+				<p style="text-align:center;color:#6b7280;">Start asking questions about your document...</p>
+			</div>
+			<div class="input-group">
+				<input type="text" id="userInput" placeholder="Ask a question...">
+				<button class="btn" id="sendBtn">Send</button>
+			</div>
+		</div>
+	</div>
+
+	<script>
+		const fileInput = document.getElementById('fileInput');
+		const uploadBtn = document.getElementById('uploadBtn');
+		const uploadStatus = document.getElementById('uploadStatus');
+		const chatSection = document.getElementById('chatSection');
+		const chatBox = document.getElementById('chatBox');
+		const userInput = document.getElementById('userInput');
+		const sendBtn = document.getElementById('sendBtn');
+
+		let file = null;
+
+		fileInput.addEventListener('change', (e) => {
+			file = e.target.files[0];
+			uploadBtn.disabled = !file;
+		});
+
+		uploadBtn.addEventListener('click', async () => {
+			if (!file) return;
+			const formData = new FormData();
+			formData.append('file', file);
+
+			try {
+				const res = await fetch('/upload', { method: 'POST', body: formData });
+				const data = await res.json();
+
+				uploadStatus.className = 'status ' + (res.ok ? 'success' : 'error');
+				uploadStatus.innerText = data.message || data.error;
+
+				if (res.ok) {
+					chatSection.style.display = 'block';
+				}
+			} catch (err) {
+				uploadStatus.className = 'status error';
+				uploadStatus.innerText = 'Upload failed. Please try again.';
+			}
+		});
+
+	function addMessage(sender, text) {
+	const div = document.createElement('div');
+	div.className = 'message ' + (sender === 'You' ? 'user' : 'ai');
+	if (sender === 'AI') {
+		// Convert AI response (markdown) into HTML
+		div.innerHTML = `<strong>${sender}:</strong><br>${marked.parse(text)}`;
+	} else {
+		div.innerHTML = `<strong>${sender}:</strong><br>${text}`;
+	}
+	chatBox.appendChild(div);
+	chatBox.scrollTop = chatBox.scrollHeight;
+}
+
+	async function sendMessage() {
+		const question = userInput.value.trim();
+		if (!question) return;
+
+		addMessage('You', question);
+		userInput.value = '';
+
+		try {
+			const res = await fetch('/chat', {
+				method: 'POST',
+				headers: { 'Content-Type': 'application/json' },
+				body: JSON.stringify({ question })
+			});
+			const data = await res.json();
+			addMessage('AI', data.answer || data.error || 'No response.');
+		} catch {
+			addMessage('AI', 'Sorry, something went wrong.');
+		}
+	}
+
+	sendBtn.addEventListener('click', sendMessage);
+	userInput.addEventListener('keypress', (e) => {
+		if (e.key === 'Enter') sendMessage();
+	});
+	</script>
+</body>
+</html>
