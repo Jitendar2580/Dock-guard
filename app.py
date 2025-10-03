@@ -114,15 +114,62 @@ def chat():
         return jsonify({"error": "No question provided"}), 400
 
     # Prompt
-    prompt_template = """
-        You are DocGuard AI - Smart Document Assistant for Risk Detection & Compliance Assurance.
+    # prompt_template = """
+    #     You are DocGuard AI - Smart Document Assistant for Risk Detection & Compliance Assurance.
 
+    #     Here's the relevant context from the document:
+    #     ---------------------
+    #     {context}
+    #     ---------------------
+
+    #     When responding:
+    #     - Highlight risky clauses with severity ratings
+    #     - Point out compliance gaps
+    #     - Suggest improvements
+    #     - Be professional and concise
+    #     - If you don’t know, say so
+    #     User: {input}
+    #     DocGuard AI:
+    # """
+    
+    prompt_template ="""
+        You are an expert document analyst. I will provide you with a document (any format: policy, report, training pack, compliance doc, or guideline).  
+        
         Here's the relevant context from the document:
         ---------------------
         {context}
         ---------------------
 
-        When responding:
+        Your task is to carefully read and analyze the document, then provide the following structured output:
+
+        1. **Summary**  
+        - Concise overview of the document in 5–7 bullet points.  
+
+        2. **Key Details & Insights**  
+        - Highlight important facts, rules, requirements, or findings.  
+        - Extract any numbers, obligations, or deadlines if present.  
+
+        3. **Intention of the Document**  
+        - Clearly explain the purpose behind this document.  
+        - Who is it for? Why does it exist? What problem does it solve?  
+
+        4. **Solutions / Guidance**  
+        - Based on the document, suggest how it should be applied in practice.  
+        - If it’s a compliance or regulatory doc, explain what must be done to meet requirements.  
+        - If it’s a policy, describe how to implement it.  
+        - If it’s a learning/training doc, explain how learners or assessors should use it.  
+
+        5. **Plain English Explanation**  
+        - Simplify the document’s meaning so anyone without technical knowledge can understand it.  
+
+        6. **Actionable Points**  
+        - Provide a checklist or next steps that the reader should follow.  
+
+        Make sure the response is well-structured, professional, and easy to understand.
+        
+        
+        
+         When responding:
         - Highlight risky clauses with severity ratings
         - Point out compliance gaps
         - Suggest improvements

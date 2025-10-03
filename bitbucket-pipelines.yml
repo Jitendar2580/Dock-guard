@@ -1,0 +1,25 @@
+Image :node:20
+
+pipelines:
+  default:
+    - step:
+        name: Install and Test
+        caches:
+          - node
+        script:
+          - npm install
+          - npm test
+    - step:
+        name: Build
+        caches:
+          - node
+        script:
+          - npm run build
+    - step:
+        name: Deploy to Production
+        deployment: production
+        script:
+          -npm install
+          - echo "Deploying to production server..."
+          
+          # Add your deployment commands here

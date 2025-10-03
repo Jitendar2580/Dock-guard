@@ -2,5 +2,5 @@
 
 ## Run Server
 ```
-streamlit run dockguard.py
+uv run app.py 
 ```
